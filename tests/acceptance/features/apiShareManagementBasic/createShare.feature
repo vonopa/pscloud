@@ -567,3 +567,51 @@ Feature: sharing
       | ocs_api_version | ocs_status_code |
       | 1               | 100             |
       | 2               | 200             |
+
+  @public_link_share-feature-required
+  Scenario Outline: Public link share permissions work correctly for deletion
+    Given using OCS API version "<ocs_api_version>"
+    And user "user0" has moved file "welcome.txt" to "PARENT/welcome.txt"
+    When user "user0" creates a public link share using the sharing API with settings
+      | path        | /PARENT       |
+      | permissions | <permissions> |
+    And the public deletes file "welcome.txt" from the last public share using the public WebDAV API
+    Then the HTTP status code should be "<http-status-code>"
+    Examples:
+      | ocs_api_version | permissions | http-status-code |
+      | 1               | 7           | 403              |
+      | 2               | 7           | 403              |
+      | 1               | 15          | 204              |
+      | 2               | 15          | 204              |
+
+  @public_link_share-feature-required
+  Scenario Outline: Public link share permissions work correctly for renaming
+    Given using OCS API version "<ocs_api_version>"
+    And user "user0" has moved file "welcome.txt" to "PARENT/welcome.txt"
+    When user "user0" creates a public link share using the sharing API with settings
+      | path        | /PARENT       |
+      | permissions | <permissions> |
+    And the public renames file "parent.txt" to "newparent.txt" from the last public share using the public WebDAV API
+    Then the HTTP status code should be "<http-status-code>"
+    Examples:
+      | ocs_api_version | permissions | http-status-code |
+      | 1               | 7           | 201              |
+      | 2               | 7           | 201              |
+      | 1               | 15          | 201              |
+      | 2               | 15          | 201              |
+
+  @public_link_share-feature-required
+  Scenario Outline: Public link share permissions work correctly for upload
+    Given using OCS API version "<ocs_api_version>"
+    And user "user0" has moved file "welcome.txt" to "PARENT/welcome.txt"
+    When user "user0" creates a public link share using the sharing API with settings
+      | path        | /PARENT       |
+      | permissions | <permissions> |
+    And the public uploads file "lorem.txt" with content "test" using the public WebDAV API
+    Then the HTTP status code should be "<http-status-code>"
+    Examples:
+      | ocs_api_version | permissions | http-status-code |
+      | 1               | 7           | 201              |
+      | 2               | 7           | 201              |
+      | 1               | 15          | 201              |
+      | 2               | 15          | 201              |
