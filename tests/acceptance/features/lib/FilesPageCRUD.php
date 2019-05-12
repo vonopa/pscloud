@@ -380,6 +380,9 @@ class FilesPageCRUD extends FilesPageBasic {
 						\error_log("Error while deleting file");
 					}
 				} else {
+					if (!$expectToDeleteFile) {
+						throw new \Exception("The file was not expected to be deleted but was deleted");
+					}
 					break;
 				}
 			} catch (\Exception $e) {
@@ -391,14 +394,18 @@ class FilesPageCRUD extends FilesPageBasic {
 						. $e->getMessage()
 						. "\n-------------------------\n"
 					);
+				} else {
+					throw $e;
 				}
 				\usleep(STANDARD_SLEEP_TIME_MICROSEC);
 			}
 		}
-		if ($expectToDeleteFile && ($counter > 0)) {
-			if (\is_array($name)) {
-				$name = \implode($name);
-			}
+		if (\is_array($name)) {
+			$name = \implode($name);
+		}
+		if ($expectToDeleteFile && $counter === $maxRetries) {
+			throw new \Exception("The file $name was expected to delete but unable to delete even after $maxRetries retries");
+		} elseif ($expectToDeleteFile && ($counter > 0)) {
 			$message = "INFORMATION: retried to delete file '$name' $counter times";
 			echo $message;
 			\error_log($message);

@@ -1602,13 +1602,61 @@ class WebUIFilesContext extends RawMinkContext implements Context {
 	 * @throws \Exception
 	 */
 	public function itShouldNotBePossibleToDeleteFileFolderUsingTheWebUI($name) {
-		try {
-			$this->deleteTheFileUsingTheWebUI($name, false);
-		} catch (ElementNotFoundException $e) {
-			PHPUnit\Framework\Assert::assertContains(
-				"could not find button 'Delete' in action Menu",
-				$e->getMessage()
-			);
+		$this->optionShouldNotBeAvailable("delete", $name, "");
+	}
+
+	/**
+	 * @Then it should be possible to delete file/folder :name using the webUI
+	 *
+	 * @param string $name
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function itShouldBePossibleToDeleteFileFolderUsingTheWebUI($name) {
+		$this->deleteTheFileUsingTheWebUI($name, true);
+	}
+
+	/**
+	 * @Then /^the option to (delete|rename|download)\s?(?:file|folder) ((?:'[^']*')|(?:"[^"]*")) should (not|)\s?be available in the webUI$/
+	 *
+	 * @param string $action
+	 * @param string $name
+	 * @param string $shouldOrNot
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function optionShouldNotBeAvailable($action, $name, $shouldOrNot) {
+		$possible = $shouldOrNot !== "not";
+		$name = \trim($name, $name[0]);
+		$pageObject = $this->getCurrentPageObject();
+		$session = $this->getSession();
+		$pageObject->waitTillPageIsLoaded($session);
+		$fileRow = $pageObject->findFileRowByName($name, $session);
+		$action = \ucfirst($action);
+		if ($possible) {
+			PHPUnit\Framework\Assert::assertTrue($fileRow->isActionLabelAvailable($action, $session));
+		} else {
+			PHPUnit\Framework\Assert::assertFalse($fileRow->isActionLabelAvailable($action, $session));
+		}
+		$fileRow->clickFileActionButton();
+	}
+
+	/**
+	 * @Then /^the option to upload file should (not|)\s?be available in the webUI$/
+	 *
+	 * @param string $shouldOrNot
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function itShouldNotBePossibleToUploadFileFolderUsingTheWebUI($shouldOrNot) {
+		$possible = $shouldOrNot !== "not";
+		if ($possible) {
+			PHPUnit\Framework\Assert::assertTrue($this->getCurrentPageObject()->isUploadButtonAvailable());
+		} else {
+			PHPUnit\Framework\Assert::assertFalse($this->getCurrentPageObject()->isUploadButtonAvailable());
 		}
 	}
 

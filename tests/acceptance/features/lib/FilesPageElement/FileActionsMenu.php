@@ -111,14 +111,18 @@ class FileActionsMenu extends OwncloudPage {
 	 * @return void
 	 */
 	public function delete() {
-		$deleteBtn = $this->findButton($this->deleteActionLabel);
-		$this->assertElementNotNull(
-			$deleteBtn,
-			__METHOD__ .
-			" could not find action button with label $this->deleteActionLabel"
-		);
-		$deleteBtn->focus();
-		$deleteBtn->click();
+		if ($this->isActionLabelVisible($this->deleteActionLabel)) {
+			$deleteBtn = $this->findButton($this->deleteActionLabel);
+			$this->assertElementNotNull(
+				$deleteBtn,
+				__METHOD__ .
+				" could not find action button with label $this->deleteActionLabel"
+			);
+			$deleteBtn->focus();
+			$deleteBtn->click();
+		} else {
+			throw new Exception(__METHOD__ . "Delete button not available");
+		}
 	}
 
 	/**
@@ -217,5 +221,26 @@ class FileActionsMenu extends OwncloudPage {
 	 */
 	public function getActionLabelLocalized($action) {
 		return $this->findButton($action)->getText();
+	}
+
+	/**
+	 * return if the Action label is visible
+	 *
+	 * @param string $action ("Delete"|"Rename"|"Details")
+	 *
+	 * @return boolean
+	 */
+	public function isActionLabelVisible($action) {
+		$xpathLocator = \sprintf($this->fileActionXpath, $action);
+		$this->waitTillElementIsNotNull($xpathLocator);
+		$button = $this->menuElement->find(
+			"xpath",
+			$xpathLocator
+		);
+		if (!$button) {
+			return false;
+		} else {
+			return $button->isVisible() === true;
+		}
 	}
 }
